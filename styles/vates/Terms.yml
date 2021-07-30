@@ -1,0 +1,38 @@
+---
+extends: substitution
+message: Use '%s' instead of '%s'.
+level: warning
+ignorecase: true
+swap:
+  '(?:[\s\W]xcp-ng|^xcp-ng)': XCP-ng
+  drtask: disaster recovery task
+  uuid: UUID
+  webserver: web server
+  xenserver: XenServer
+  ceph: Ceph
+  glusterfs: GlusterFS
+  ip: IP
+  perf: performance
+  perfs: performance
+  netxtreme: NetXtreme
+  anitya: Anitya
+  ansible: Ansible
+  cloudstack: CloudStack
+  xen: Xen
+  xeon: Xeon
+  citrix: Citrix
+  corosync: Corosync
+  smartmontools: Smartmontools
+  vates: Vates
+  scaleway: Scaleway
+  hetzner: Hetzner
+  ceph: Ceph
+  gluster: Gluster
+  virtio: Virtio
+  netdata: Netdata
+  ryzen: Ryzen
+  realtek: Realtek
+  nvidia: NVIDIA
+  openFlow: OpenFlow
+  netxtreme: NetXtreme
+  proxmox: Proxmox
