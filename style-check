@@ -1,0 +1,151 @@
+#!/bin/bash
+#
+# style-check
+#
+# This script prepares the repository for using the Vates Vale style.
+# It caches the style rules and configuration in ~/.vates-lint
+
+set -e
+
+usage="style-check <git-tag> [--vale-version=TAG] [--] [vale-args | files]"
+
+EXT=md
+
+die() {
+    printf "style-check: error\n$*\n" >&2
+    exit 1
+}
+
+version=$1
+shift
+
+# Default to version v2.10.3
+
+_stop=0
+while [[ $# -gt 0 ]]
+do
+    case $1 in
+    --vale-version=*)
+        valeversion=${1/--vale-version=/}
+        shift
+        break;;
+    --help|-h)
+        die "${usage}"
+        break;;
+    --)
+        _stop=1
+        shift
+        break;;
+    *)
+        shift
+        break;;
+    esac
+
+    [[ "${_stop}" = 1 ]] && break
+done
+
+# Vale args
+valeargs=()
+while [[ $# -gt 0 ]]
+do
+    arg=$1
+    case ${arg} in
+    --config)
+        shift
+        config=$1
+        break;;
+    *)
+        valeargs+=("${arg}")
+    esac
+    shift
+done
+
+if [[ -z "${valeargs[@]}" ]]
+then
+    valeargs=("$(find -type f -name '*.${EXT}')")
+fi
+
+[[ ! "${version}" =~ v[0-9]+.[0-9]+ ]] && \
+    die "Invalid version format: ${version}, must be format vX.Y"
+
+if [[ -z "$(git ls-remote --refs https://github.com/xcp-ng/vale-styles.git "${version}")" ]];
+then
+    first=1
+    for tag in $(git ls-remote --refs https://github.com/xcp-ng/vale-styles.git | cut -f2 | sed -r 's/refs\/(tags|heads)\/(.*)/\2/');
+    do
+        if [[ "${first}" = 1 ]]; then
+            string="${tag}"
+            first=0
+        else
+            string="${string}, ${tag}"
+        fi
+    done
+
+    die "Invalid version. Valid choices: ${string}"
+fi
+
+root=$HOME/.vates-lint
+parent=${root}/vale-styles
+cachedir="${parent}/${version}"
+
+install -m 755 -d "${parent}"
+install -m 755 -d "${cachedir}"
+
+download_vale() {
+    bindir=${parent}/bin/${valeversion}
+    valebin="${bindir}/vale"
+    if [[ -e ${valebin} ]];
+    then
+        return 0
+    fi
+    install -m 755 -d "${bindir}"
+    curl -sfL https://install.goreleaser.com/github.com/ValeLint/vale.sh \
+                | bash -s -- -b "${bindir}" "${valeversion}"
+}
+
+if [[ -z "${valeversion}" ]] && [[ -z "$(command -v vale)" ]];
+then
+    # If no Vale is on system, download and use v2.10.3
+    valeversion="v2.10.3"
+    download_vale
+elif [[ -n "${valeversion}" ]]
+then
+    # Even if Vale is installed on system, if the user has passed
+    # in --vale-version then download and use the passed in version.
+    download_vale
+else
+    # Otherwise, just try to use one installed loocally
+    valebin="$(which vale)"
+fi
+
+if [[ ! -d "${cachedir}/styles" ]];
+then
+    curl -L "https://github.com/xcp-ng/vale-styles/archive/refs/tags/${version}.tar.gz"   \
+                | tar xzv --strip-components=1                                          \
+                  --exclude=.vale.ini                                                   \
+                  --exclude=style-check -C "${cachedir}"/
+fi
+
+[[ ! -d ${cachedir}/styles/ ]] && \
+    die "Directory ${cachedir}/styles/ was not created."
+
+if [[ ! -e ${cachedir}/vale.ini ]];
+then
+    cat > "${cachedir}"/vale.ini <<END
+StylesPath = $(readlink -e "${cachedir}"/styles/)
+MinAlertLevel = suggestion
+
+# Only Markdown files;
+[*.{${EXT}}]
+# List of styles to load.
+BasedOnStyles = gitlab, vates
+END
+fi
+
+if [[ -z "${config}" ]]
+then
+    config=${cachedir}/vale.ini
+fi
+
+echo "Executing: ${bindir}/vale --config "${config}" "${valeargs[@]}""
+${valebin} --config "${config}" "${valeargs[@]}"
