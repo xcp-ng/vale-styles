@@ -1,0 +1,16 @@
+---
+name: 'Vates doc style'
+description: 'Lint documentation for Vates style using Vale'
+inputs:
+  files:
+    description: 'The files to lint with Vale'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - run: curl -sfL https://install.goreleaser.com/github.com/ValeLint/vale.sh | sh -s v2.10.3
+      shell: bash
+    - run: bash <( curl -sL https://raw.githubusercontent.com/xcp-ng/vale-styles/v0.1/setup.sh )
+      shell: bash
+    - run: ./bin/vale ${{ inputs.files }}
+      shell: bash
