@@ -1,8 +1,0 @@
----
-# Inspired by gitlab/Spelling.yml
-extends: spelling
-message: "Spelling check: '%s'"
-level: warning
-code: false
-ignore:
-  - vates/spelling-exceptions.txt

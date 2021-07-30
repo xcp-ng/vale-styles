@@ -1,4 +1,4 @@
-Files in docs/.vale/gitlab/ are subject to the following license:
-
-    Copyright (c) 2011-present GitLab B.V.
-    Creative Commons: CC BY-SA 4.0 license
+The contents of directory styles/gitlab/ is derivative of content found in
+https://gitlab.com/gitlab-org/gitlab/-/tree/v14.1.1-ee/doc/.vale/gitlab, used
+under CC BY-SA 4.0.  All files under styles/gitlab/ are licensed under CC BY-SA
+4.0 by Vates.

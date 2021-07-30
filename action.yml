@@ -1,0 +1,12 @@
+---
+name: 'Vates doc style'
+description: 'Lint documentation for Vates style using Vale'
+inputs:
+  files:
+    description: 'The files to lint with Vale'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - run: curl -sL https://raw.githubusercontent.com/xcp-ng/vale-styles/v0.2/style-check | bash -s v0.2 -- ${{ inputs.files }}
+      shell: bash
